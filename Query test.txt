@@ -1,0 +1,142 @@
+1. Tampilkan seluruh data category name dan parent category name (Category Name, Parent Name)
+
+Query : 
+SELECT 
+	A.category_name as Category_Name, 
+	B.category_name as Parent_Name 
+FROM category A
+JOIN(
+	SELECT 
+		id,
+		category_name
+	FROM category
+    ) B on A.parent_category_id= B.id
+
+2.  Tampilkan data customer dan usia nya yang pada tahun ini berusia di antara 30-40 tahun (Customer
+Code, Customer Name, Address, Age)
+
+Query :
+SELECT 
+    A.customer_code as CODE,
+    A.customer_name as CUSTOMER_NAME,
+    A.address,
+    timestampdiff(year, A.birth_date, curdate())as age
+FROM customer A 
+where timestampdiff(year, A.birth_date, curdate())>=30 and timestampdiff(year, A.birth_date, curdate())<=40
+
+
+3. Tampilkan seluruh data customer beserta jumlah transaksi yang pernah dilakukan (Customer Code,
+Customer Name, Total Tra nsaksi)
+
+Query :
+SELECT
+	B.customer_code,
+	B.customer_name,
+	COUNT(B.customer_name) as total_transaksi
+FROM so A
+JOIN customer B on A.customer_id= B.id
+GROUP BY B.customer_code
+
+
+4.Tampilkan seluruh data product beserta nama kategorinya (productyang belum memiliki kategori
+pun juga dltampilkan) (ld, Product Code, Product Name, Price, Kategori)
+
+Query :
+SELECT
+	A.id as ID,
+	A.product_code as Product_Code,
+	A.product_name as Product_Name,
+	A.price,
+	IF(B.category_name != " ",B.category_name, " ") as Kategori
+FROM
+product A
+LEFT JOIN category B on A.category_id=B.id
+
+
+5. Tampilkan data SO beserta total nilai nya (No SO, Customer Name, Transaction Date, Total amount)
+
+Query :
+SELECT
+	A.so_no,
+	B.customer_name,
+	A.trans_date,
+	(C.qty * C.price)-((C.qty * C.price)*C.discount)/100 as total_amount
+FROM
+so A
+JOIN customer B on A.customer_id = B.id
+JOIN so_detail C on A.id = C.so_id
+
+
+6. Tampilkan detail product yang paling laris (Product Code, Product Name, Total Terjual)
+
+Query :
+SELECT
+	A.product_code,
+	A.product_name,
+	count(A.id) as Total_terjual
+FROM
+product A
+JOIN so_detail B on A.id = B.product_id
+GROUP by A.id
+
+
+
+7.Tampilkan 5 data customer teratas yang melakukan pembelian terbesar (Customer Code, Customer
+Name, Total amount)
+
+Query :
+
+SELECT
+	B.customer_code,
+	B.customer_name,
+	(C.qty * C.price)-((C.qty * C.price)*C.discount)/100 as total_amount
+FROM
+so A
+JOIN customer B on A.customer_id = B.id
+JOIN so_detail C on A.id = C.so_id
+order by (C.qty * C.price)-((C.qty * C.price)*C.discount)/100 DESC
+LIMIT 5
+
+
+8. Ubah data payment menjadi "cash" untuk SO yang transaksinya sudah lebih dari 1 minggu dan
+payment nya "credit"
+
+Query :
+
+CREATE PROCEDURE so_update(INOUT trans_date DATE, INOUT payment varchar)
+BEGIN
+
+UPDATE so SET
+	payment='cash' 
+WHERE payment='credit' AND timestampdiff(day, trans_date, curdate())>7
+
+END
+
+
+
+9. Ubah data payment pada table SO untuk data yang paymentnya tidak sesuai dengan default
+payment customer (Failed)
+
+Query:
+CREATE PROCEDURE so_update2()
+BEGIN
+
+UPDATE so
+SET so.payment=customer.id
+FROM so, customer
+WHERE so.customer_id=customer.id;
+
+END
+
+
+10.  Masukkan data baru untuk penjualan SO dengan data sbb:
+Pembeli:Tori
+TanggaI Beli: 20/8/2O16
+Pembayaran secara cash
+Detail Barang:
+Celana Jeans 2 pcs
+Kipas Angin 1 pcs dengan diskon 10%
+Baju bayi 24 pcs
+
+
+Query: 
